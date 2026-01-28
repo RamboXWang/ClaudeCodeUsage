@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Usage Monitor</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 320px;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      margin: 0;
+      color: #1f2937;
+    }
+
+    .header {
+      background: #8b5cf6;
+      color: white;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header h1 {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .usage-display {
+      text-align: center;
+      padding: 24px 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .usage-percent {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .usage-percent.low {
+      color: #22c55e;
+    }
+
+    .usage-percent.medium {
+      color: #f59e0b;
+    }
+
+    .usage-percent.high {
+      color: #ef4444;
+    }
+
+    .usage-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+
+    .info-section {
+      margin-bottom: 16px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-weight: 500;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .info-value {
+      font-size: 13px;
+      text-align: right;
+      max-width: 180px;
+      word-wrap: break-word;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-badge.ok {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-badge.stale {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .status-badge.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-badge.warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button.primary {
+      background: #8b5cf6;
+      color: white;
+    }
+
+    button.primary:hover {
+      background: #7c3aed;
+    }
+
+    button.secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    button.secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: #6b7280;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .error-state {
+      padding: 16px;
+      background: #fef2f2;
+      border-left: 4px solid #ef4444;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+
+    .error-title {
+      font-weight: 600;
+      color: #991b1b;
+      margin-bottom: 4px;
+    }
+
+    .error-message {
+      font-size: 13px;
+      color: #7f1d1d;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Claude Usage Monitor</h1>
+  </div>
+
+  <div class="content">
+    <div id="loading-state" style="display: none;">
+      <div class="empty-state">
+        <div class="empty-state-icon">⏳</div>
+        <div class="empty-state-text">Loading...</div>
+      </div>
+    </div>
+
+    <div id="empty-state" style="display: none;">
+      <div class="empty-state">
+        <div class="empty-state-icon">📊</div>
+        <div class="empty-state-text">
+          No usage data yet.<br>
+          Visit <strong>claude.ai/settings/usage</strong> while logged in to see your usage.
+        </div>
+      </div>
+    </div>
+
+    <div id="error-state" style="display: none;">
+      <div class="error-state">
+        <div class="error-title" id="error-title">Error</div>
+        <div class="error-message" id="error-message"></div>
+      </div>
+    </div>
+
+    <div id="usage-state" style="display: none;">
+      <div class="usage-display">
+        <div class="usage-percent" id="usage-percent">--</div>
+        <div class="usage-label">Current Session Usage</div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-row">
+          <span class="info-label">Status</span>
+          <span class="info-value"><span class="status-badge" id="status-badge">OK</span></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Reset Time</span>
+          <span class="info-value" id="reset-time">--</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Last Updated</span>
+          <span class="info-value" id="last-updated">--</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="secondary" id="open-usage-page">Open Usage Page</button>
+      <button class="primary" id="refresh-button">Refresh</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

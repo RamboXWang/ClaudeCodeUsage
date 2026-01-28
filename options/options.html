@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Usage Monitor - Options</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 32px 16px;
+      color: #1f2937;
+      background: #f9fafb;
+    }
+
+    .header {
+      margin-bottom: 32px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      color: #8b5cf6;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+      color: #1f2937;
+    }
+
+    .option-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .option-row:last-child {
+      border-bottom: none;
+    }
+
+    .option-info {
+      flex: 1;
+    }
+
+    .option-label {
+      font-weight: 500;
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: #374151;
+    }
+
+    .option-description {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .option-control {
+      margin-left: 16px;
+    }
+
+    .toggle {
+      position: relative;
+      width: 48px;
+      height: 24px;
+      background: #d1d5db;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle.active {
+      background: #8b5cf6;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .toggle.active::after {
+      transform: translateX(24px);
+    }
+
+    input[type="number"] {
+      width: 80px;
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #8b5cf6;
+    }
+
+    .save-button {
+      width: 100%;
+      padding: 12px;
+      background: #8b5cf6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .save-button:hover {
+      background: #7c3aed;
+    }
+
+    .save-button.saved {
+      background: #22c55e;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #1e40af;
+      margin-top: 16px;
+    }
+
+    .badge-preview {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .badge-sample {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      background: #8b5cf6;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+    }
+
+    .badge-icon::after {
+      content: attr(data-badge);
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      background: var(--badge-color);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .badge-label {
+      font-size: 11px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Claude Usage Monitor</h1>
+    <div class="subtitle">Configure your usage monitoring preferences</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Display Settings</div>
+
+    <div class="option-row">
+      <div class="option-info">
+        <div class="option-label">Stale Data Threshold</div>
+        <div class="option-description">
+          Mark data as stale after this many minutes
+        </div>
+      </div>
+      <div class="option-control">
+        <input type="number" id="stale-threshold" min="5" max="120" value="30">
+      </div>
+    </div>
+
+    <div class="option-row">
+      <div class="option-info">
+        <div class="option-label">Color-Coded Badge</div>
+        <div class="option-description">
+          Use green/yellow/red colors based on usage level
+        </div>
+      </div>
+      <div class="option-control">
+        <div class="toggle active" id="color-badge-toggle"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Badge Color Preview</div>
+    <div class="option-description" style="margin-bottom: 12px;">
+      Badge colors based on usage percentage
+    </div>
+
+    <div class="badge-preview">
+      <div class="badge-sample">
+        <div class="badge-icon" data-badge="25" style="--badge-color: #22c55e;">C</div>
+        <div class="badge-label">Low (&lt;50%)</div>
+      </div>
+      <div class="badge-sample">
+        <div class="badge-icon" data-badge="65" style="--badge-color: #f59e0b;">C</div>
+        <div class="badge-label">Medium (50-80%)</div>
+      </div>
+      <div class="badge-sample">
+        <div class="badge-icon" data-badge="95" style="--badge-color: #ef4444;">C</div>
+        <div class="badge-label">High (&gt;80%)</div>
+      </div>
+      <div class="badge-sample">
+        <div class="badge-icon" data-badge="⚠" style="--badge-color: #f59e0b;">C</div>
+        <div class="badge-label">Auth Required</div>
+      </div>
+      <div class="badge-sample">
+        <div class="badge-icon" data-badge="ERR" style="--badge-color: #ef4444;">C</div>
+        <div class="badge-label">Error</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">About</div>
+    <div class="option-description">
+      Claude Usage Monitor tracks your Claude Code usage from claude.ai/settings/usage
+      and displays it as a badge on the extension icon for quick visibility.
+    </div>
+    <div class="info-box">
+      Visit <strong>claude.ai/settings/usage</strong> while logged in to see your usage data.
+      The extension will automatically extract and display your current session percentage.
+    </div>
+  </div>
+
+  <button class="save-button" id="save-button">Save Settings</button>
+
+  <script src="options.js"></script>
+</body>
+</html>

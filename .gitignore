@@ -1,0 +1,21 @@
+# Node modules (if any)
+node_modules/
+package-lock.json
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Build artifacts
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Chrome extension generated files
+*.crx
+*.pem
