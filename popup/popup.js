@@ -162,13 +162,18 @@ openUsagePageButton.addEventListener('click', () => {
 });
 
 refreshButton.addEventListener('click', async () => {
-  // Open the usage page in a new tab to trigger content script
-  const tab = await chrome.tabs.create({ url: 'https://claude.ai/settings/usage', active: true });
+  // Show loading state
+  refreshButton.textContent = 'Refreshing...';
+  refreshButton.disabled = true;
 
-  // Close popup after a short delay to let the user see the action
+  // Reload data from storage
+  await init();
+
+  // Reset button state
   setTimeout(() => {
-    window.close();
-  }, 300);
+    refreshButton.textContent = 'Refresh';
+    refreshButton.disabled = false;
+  }, 500);
 });
 
 // Initialize on load
