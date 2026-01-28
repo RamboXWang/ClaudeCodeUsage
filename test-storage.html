@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Extension Storage Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .result {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 3px solid #4ec9b0;
+        }
+        .success { border-left-color: #4ec9b0; }
+        .error { border-left-color: #f48771; }
+        pre {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Claude Usage Monitor - Storage Test</h1>
+    <button onclick="checkStorage()">Check Extension Storage</button>
+    <div id="results"></div>
+
+    <script>
+        async function checkStorage() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="result">⏳ Checking storage...</div>';
+
+            try {
+                if (typeof chrome === 'undefined' || !chrome.storage) {
+                    throw new Error('Chrome storage API not available');
+                }
+
+                chrome.storage.local.get([
+                    'currentSessionPercent',
+                    'weeklyLimitPercent',
+                    'resetTimeText',
+                    'extractedAt',
+                    'lastError',
+                    'isStale'
+                ], (data) => {
+                    let html = '<div class="result success">';
+                    html += '<h2>✅ Extension Storage Data</h2>';
+                    html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+
+                    // Analyze the data
+                    html += '<h3>Analysis:</h3>';
+                    html += '<ul>';
+
+                    if (data.currentSessionPercent !== undefined) {
+                        html += '<li>✅ Current session: <strong>' + data.currentSessionPercent + '%</strong></li>';
+                    } else {
+                        html += '<li>❌ Current session: NOT FOUND</li>';
+                    }
+
+                    if (data.weeklyLimitPercent !== undefined && data.weeklyLimitPercent !== null) {
+                        html += '<li>✅ Weekly limit: <strong>' + data.weeklyLimitPercent + '%</strong> (BUG FIX WORKING!)</li>';
+                    } else {
+                        html += '<li>❌ Weekly limit: NOT FOUND (Bug not fixed)</li>';
+                    }
+
+                    if (data.resetTimeText) {
+                        html += '<li>✅ Reset time: ' + data.resetTimeText + '</li>';
+                    }
+
+                    if (data.extractedAt) {
+                        const age = Date.now() - data.extractedAt;
+                        const ageMinutes = Math.floor(age / 60000);
+                        html += '<li>✅ Last extracted: ' + ageMinutes + ' minutes ago</li>';
+                    }
+
+                    if (data.lastError) {
+                        html += '<li>⚠️  Error: ' + JSON.stringify(data.lastError) + '</li>';
+                    }
+
+                    html += '</ul>';
+                    html += '</div>';
+
+                    resultsDiv.innerHTML = html;
+                });
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="result error">';
+                resultsDiv.innerHTML += '<h2>❌ Error</h2>';
+                resultsDiv.innerHTML += '<p>' + error.message + '</p>';
+                resultsDiv.innerHTML += '</div>';
+            }
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            setTimeout(checkStorage, 500);
+        });
+    </script>
+</body>
+</html>
