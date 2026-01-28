@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-01-28
+
+### Added
+- **Auto-Refresh Feature**: Automatically refreshes usage data in the background at configurable intervals
+  - Configurable intervals: 5, 10, 15, 30, or 60 minutes
+  - Enable/disable toggle in Options page
+  - Uses chrome.alarms API for efficient scheduling
+  - Opens usage page in background tab (closes automatically)
+- Background tab refresh mechanism for both manual and auto-refresh
+- "tabs" permission added to manifest for background tab management
+- Comprehensive documentation:
+  - `AUTO_REFRESH_FEATURE.md` - Feature overview and technical details
+  - `TEST_AUTO_REFRESH.md` - Comprehensive test suite
+  - `QUICK_TEST_REFRESH.md` - Quick test guide for manual and auto-refresh
+  - `TEST_AUTO_REFRESH_NOW.md` - Step-by-step auto-refresh testing
+- Auto-refresh settings section in Options page
+- Enhanced logging with emoji indicators for better visibility
+
+### Fixed
+- **Critical Bug Fix:** Manual refresh button now properly fetches new data
+  - Previous behavior: Only reloaded data from chrome.storage (no new fetch)
+  - New behavior: Opens usage page in background tab to fetch fresh data
+  - Popup sends MANUAL_REFRESH message to background script
+  - Background tab closes automatically after 10 seconds
+  - User confirmation: "Manual refresh work!"
+
+### Changed
+- Refresh mechanism completely rewritten:
+  - Manual refresh: popup → background → open tab → extract → close tab → update
+  - Auto-refresh: alarm → background → open tab → extract → close tab → update
+- Service worker tracks separate tab IDs for auto and manual refresh
+- Added tab cleanup on removal event
+- Improved message passing with async response handling
+- Extended content script logging for debugging
+- Version bumped from 1.1.0 to 1.2.0
+
+### Technical Details
+- Added `setupAutoRefreshAlarm()` function to manage chrome.alarms
+- Added `performAutoRefresh()` function to execute scheduled refreshes
+- Added `handleManualRefresh()` function to handle popup refresh requests
+- Both refresh types share the same core mechanism (background tab)
+- Duplicate refresh prevention with in-progress checks
+- Tab timeout: 10s for manual, 15s for auto-refresh
+
+### Testing
+- ✅ Manual refresh tested and confirmed working by user
+- ⏳ Auto-refresh implementation complete, awaiting user testing
+
 ## [1.1.0] - 2026-01-28
 
 ### Added

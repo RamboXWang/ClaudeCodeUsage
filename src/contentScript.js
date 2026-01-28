@@ -190,14 +190,15 @@ function setupObserver() {
 
 // Send usage update to background script
 function sendUsageUpdate(data) {
+  console.log('📤 Sending usage update to background:', data);
   chrome.runtime.sendMessage({
     type: 'CLAUDE_USAGE_UPDATE',
     data: data
   }, (response) => {
     if (chrome.runtime.lastError) {
-      console.error('Error sending message:', chrome.runtime.lastError);
+      console.error('❌ Error sending message:', chrome.runtime.lastError);
     } else {
-      console.log('Usage update sent successfully:', response);
+      console.log('✅ Usage update sent successfully:', response);
     }
   });
 }

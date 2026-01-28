@@ -12,11 +12,13 @@ A Chrome extension that monitors your Claude Code usage from `claude.ai/settings
   - Reset time
   - Last updated timestamp
   - Status indicator (OK/Stale)
+- **Manual Refresh**: Click the "Refresh" button in popup to fetch latest usage data
+- **Auto-Refresh**: Automatically refreshes usage data in the background at configurable intervals (5, 10, 15, 30, or 60 minutes)
 - **Weekly Limit Tracking**: Displays weekly usage limits when available
 - **Stale Data Detection**: Automatically marks data as stale after 30 minutes (configurable)
 - **Authentication Detection**: Alerts when you need to log in to Claude
 - **Robust Parsing**: Multiple fallback strategies to extract usage data from the page
-- **Options Page**: Customize stale threshold and color preferences
+- **Options Page**: Customize stale threshold, color preferences, and auto-refresh settings
 
 ## Installation
 
@@ -29,11 +31,12 @@ A Chrome extension that monitors your Claude Code usage from `claude.ai/settings
 ## Usage
 
 1. Log in to Claude at `https://claude.ai`
-2. Visit `https://claude.ai/settings/usage`
+2. **Initial setup**: Visit `https://claude.ai/settings/usage` once to initialize data
 3. The extension will automatically extract your current session usage percentage
 4. The badge on the extension icon will update to show your usage
 5. Click the icon to see detailed information
-6. Use the "Refresh" button to manually update usage data
+6. **Manual refresh**: Use the "Refresh" button in popup to fetch latest data anytime
+7. **Auto-refresh** (optional): Enable in Options to automatically refresh at regular intervals
 
 ## Badge States
 
@@ -47,6 +50,8 @@ A Chrome extension that monitors your Claude Code usage from `claude.ai/settings
 Right-click the extension icon and select "Options" to configure:
 - **Stale Data Threshold**: How long before data is marked as stale (5-120 minutes)
 - **Color-Coded Badge**: Enable/disable color coding based on usage level
+- **Auto-Refresh**: Enable/disable automatic background refresh
+- **Refresh Interval**: Choose how often to auto-refresh (5, 10, 15, 30, or 60 minutes)
 
 ## Project Status
 
@@ -59,7 +64,13 @@ All core phases complete and tested:
 - ✅ **Phase 5**: Configuration options and polish
 - ✅ **Phase 6**: Weekly limit feature added and verified
 
-**Latest Update (2026-01-28):**
+**Latest Update (2026-01-28 - v1.2.0):**
+- ✅ Manual refresh fixed - now properly fetches new data instead of just reloading from storage
+- ✅ Auto-refresh feature added - automatically refreshes usage data at configurable intervals
+- ✅ Background tab mechanism - refreshes work by opening usage page in background tab
+- ✅ Manual refresh confirmed working by user testing
+
+**Previous Update (2026-01-28 - v1.1.0):**
 - ✅ Weekly limit bug fixed - now correctly extracts and displays weekly usage
 - ✅ Handles real Claude.ai page structure with text gaps
 - ✅ Full test suite added for automated validation
@@ -103,17 +114,18 @@ ClaudeCodeUsage/
 - Extension relies on the current structure of claude.ai/settings/usage page
 - If Claude changes the page structure, the content script may need updates
   - **Note:** As of 2026-01-28, handles the real page structure robustly with gap-tolerant parsing
-- Passive refresh strategy: badge updates only when you visit the usage page
-- No automatic polling (to respect rate limits and avoid aggressive background activity)
+- Auto-refresh opens a background tab briefly to fetch data (closes automatically after 10-15 seconds)
 - Weekly limit may not be available for all account types (displays only if present on page)
 
 ## Future Enhancements
 
 See Section 9 in `PLAN.md` for planned future enhancements:
-- Active polling option (optional, user-enabled)
+- ~~Active polling option (optional, user-enabled)~~ ✅ Implemented in v1.2.0
 - Multi-account support
 - Settings sync across devices
 - Keyboard shortcuts
+- Usage history/trends
+- Notifications for high usage
 
 ## License
 

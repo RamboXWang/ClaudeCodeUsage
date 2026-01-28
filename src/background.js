@@ -1,15 +1,17 @@
 // Service worker for Claude Usage Monitor extension
 
 // Initialize badge on install
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async () => {
   console.log('Claude Usage Monitor installed');
   setBadgeToInitialState();
+  await setupAutoRefreshAlarm();
 });
 
 // Restore badge state on startup (service worker may restart)
 chrome.runtime.onStartup.addListener(async () => {
   console.log('Claude Usage Monitor service worker starting');
   await restoreBadgeFromStorage();
+  await setupAutoRefreshAlarm();
 });
 
 // Set initial badge state
@@ -96,6 +98,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.type === 'SETTINGS_UPDATED') {
     handleSettingsUpdate(message.settings);
     sendResponse({ success: true });
+  } else if (message.type === 'MANUAL_REFRESH') {
+    handleManualRefresh().then(() => {
+      sendResponse({ success: true });
+    }).catch(error => {
+      console.error('Manual refresh error:', error);
+      sendResponse({ success: false, error: error.message });
+    });
+    return true; // async response
   }
 
   return false; // synchronous response
@@ -118,6 +128,9 @@ async function handleSettingsUpdate(settings) {
   } catch (error) {
     console.error('Error refreshing badge after settings update:', error);
   }
+
+  // Setup auto-refresh alarm with new settings
+  await setupAutoRefreshAlarm();
 }
 
 // Handle usage update from content script
@@ -131,10 +144,11 @@ async function handleUsageUpdate(data) {
       return;
     }
 
-    console.log('✓ Background received usage update:', {
+    console.log('✅ Background received usage update:', {
       currentSessionPercent: data.currentSessionPercent,
       weeklyLimitPercent: data.weeklyLimitPercent,
-      resetTimeText: data.resetTimeText
+      resetTimeText: data.resetTimeText,
+      timestamp: new Date().toLocaleTimeString()
     });
 
     // Store data
@@ -194,6 +208,8 @@ chrome.alarms.create('stale-check', {
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'stale-check') {
     checkForStaleData();
+  } else if (alarm.name === 'auto-refresh') {
+    performAutoRefresh();
   }
 });
 
@@ -242,5 +258,125 @@ async function checkForStaleData() {
     console.error('Error checking for stale data:', error);
   }
 }
+
+// Auto-refresh and manual refresh functionality
+let autoRefreshTabId = null;
+let manualRefreshTabId = null;
+
+// Setup auto-refresh alarm based on settings
+async function setupAutoRefreshAlarm() {
+  try {
+    const data = await chrome.storage.local.get(['settings']);
+    const settings = data.settings || { autoRefreshEnabled: false, refreshIntervalMinutes: 5 };
+
+    // Clear existing alarm
+    await chrome.alarms.clear('auto-refresh');
+
+    if (settings.autoRefreshEnabled) {
+      // Create new alarm with the configured interval
+      chrome.alarms.create('auto-refresh', {
+        delayInMinutes: settings.refreshIntervalMinutes,
+        periodInMinutes: settings.refreshIntervalMinutes
+      });
+      console.log(`Auto-refresh enabled: every ${settings.refreshIntervalMinutes} minutes`);
+    } else {
+      console.log('Auto-refresh disabled');
+    }
+  } catch (error) {
+    console.error('Error setting up auto-refresh alarm:', error);
+  }
+}
+
+// Perform auto-refresh by opening usage page in background
+async function performAutoRefresh() {
+  try {
+    console.log('Performing auto-refresh...');
+
+    // Check if already refreshing
+    if (autoRefreshTabId !== null) {
+      console.log('Auto-refresh already in progress, skipping');
+      return;
+    }
+
+    // Open usage page in background tab
+    const tab = await chrome.tabs.create({
+      url: 'https://claude.ai/settings/usage',
+      active: false // Open in background
+    });
+
+    autoRefreshTabId = tab.id;
+    console.log(`Auto-refresh tab opened: ${tab.id}`);
+
+    // Set timeout to close tab after 15 seconds (enough time for data extraction)
+    setTimeout(async () => {
+      try {
+        if (autoRefreshTabId !== null) {
+          await chrome.tabs.remove(autoRefreshTabId);
+          console.log(`Auto-refresh tab closed: ${autoRefreshTabId}`);
+          autoRefreshTabId = null;
+        }
+      } catch (error) {
+        console.error('Error closing auto-refresh tab:', error);
+        autoRefreshTabId = null;
+      }
+    }, 15000);
+
+  } catch (error) {
+    console.error('Error performing auto-refresh:', error);
+    autoRefreshTabId = null;
+  }
+}
+
+// Handle manual refresh request from popup
+async function handleManualRefresh() {
+  try {
+    console.log('Performing manual refresh...');
+
+    // Check if already refreshing
+    if (manualRefreshTabId !== null) {
+      console.log('Manual refresh already in progress, skipping');
+      return;
+    }
+
+    // Open usage page in background tab
+    const tab = await chrome.tabs.create({
+      url: 'https://claude.ai/settings/usage',
+      active: false // Open in background
+    });
+
+    manualRefreshTabId = tab.id;
+    console.log(`Manual refresh tab opened: ${tab.id}`);
+
+    // Set timeout to close tab after 10 seconds (enough time for data extraction)
+    setTimeout(async () => {
+      try {
+        if (manualRefreshTabId !== null) {
+          await chrome.tabs.remove(manualRefreshTabId);
+          console.log(`Manual refresh tab closed: ${manualRefreshTabId}`);
+          manualRefreshTabId = null;
+        }
+      } catch (error) {
+        console.error('Error closing manual refresh tab:', error);
+        manualRefreshTabId = null;
+      }
+    }, 10000);
+
+  } catch (error) {
+    console.error('Error performing manual refresh:', error);
+    manualRefreshTabId = null;
+    throw error;
+  }
+}
+
+// Listen for tab removal to clean up refresh tab IDs
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (tabId === autoRefreshTabId) {
+    console.log('Auto-refresh tab was closed');
+    autoRefreshTabId = null;
+  } else if (tabId === manualRefreshTabId) {
+    console.log('Manual refresh tab was closed');
+    manualRefreshTabId = null;
+  }
+});
 
 console.log('Background script loaded');

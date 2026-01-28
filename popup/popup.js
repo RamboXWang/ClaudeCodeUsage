@@ -185,14 +185,28 @@ refreshButton.addEventListener('click', async () => {
   refreshButton.textContent = 'Refreshing...';
   refreshButton.disabled = true;
 
-  // Reload data from storage
-  await init();
+  try {
+    // Request background script to perform a manual refresh
+    const response = await chrome.runtime.sendMessage({ type: 'MANUAL_REFRESH' });
 
-  // Reset button state
-  setTimeout(() => {
-    refreshButton.textContent = 'Refresh';
-    refreshButton.disabled = false;
-  }, 500);
+    if (response && response.success) {
+      // Wait a bit for data to be extracted and stored
+      setTimeout(async () => {
+        await init();
+        refreshButton.textContent = 'Refresh';
+        refreshButton.disabled = false;
+      }, 3000); // Wait 3 seconds for page load and extraction
+    } else {
+      throw new Error('Manual refresh failed');
+    }
+  } catch (error) {
+    console.error('Error during manual refresh:', error);
+    refreshButton.textContent = 'Error';
+    setTimeout(() => {
+      refreshButton.textContent = 'Refresh';
+      refreshButton.disabled = false;
+    }, 2000);
+  }
 });
 
 // Initialize on load

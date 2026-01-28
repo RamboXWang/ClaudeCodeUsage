@@ -5,12 +5,16 @@ console.log('Options page loaded');
 // DOM elements
 const staleThresholdInput = document.getElementById('stale-threshold');
 const colorBadgeToggle = document.getElementById('color-badge-toggle');
+const autoRefreshToggle = document.getElementById('auto-refresh-toggle');
+const refreshIntervalSelect = document.getElementById('refresh-interval');
 const saveButton = document.getElementById('save-button');
 
 // Default settings
 const DEFAULT_SETTINGS = {
   staleThresholdMinutes: 30,
-  colorCodedBadge: true
+  colorCodedBadge: true,
+  autoRefreshEnabled: false,
+  refreshIntervalMinutes: 5
 };
 
 // Load settings on init
@@ -22,6 +26,8 @@ async function loadSettings() {
     // Update UI
     staleThresholdInput.value = currentSettings.staleThresholdMinutes;
     colorBadgeToggle.classList.toggle('active', currentSettings.colorCodedBadge);
+    autoRefreshToggle.classList.toggle('active', currentSettings.autoRefreshEnabled);
+    refreshIntervalSelect.value = currentSettings.refreshIntervalMinutes;
 
     console.log('Settings loaded:', currentSettings);
   } catch (error) {
@@ -34,7 +40,9 @@ async function saveSettings() {
   try {
     const settings = {
       staleThresholdMinutes: parseInt(staleThresholdInput.value, 10),
-      colorCodedBadge: colorBadgeToggle.classList.contains('active')
+      colorCodedBadge: colorBadgeToggle.classList.contains('active'),
+      autoRefreshEnabled: autoRefreshToggle.classList.contains('active'),
+      refreshIntervalMinutes: parseInt(refreshIntervalSelect.value, 10)
     };
 
     await chrome.storage.local.set({ settings });
@@ -61,9 +69,13 @@ async function saveSettings() {
   }
 }
 
-// Toggle handler
+// Toggle handlers
 colorBadgeToggle.addEventListener('click', () => {
   colorBadgeToggle.classList.toggle('active');
+});
+
+autoRefreshToggle.addEventListener('click', () => {
+  autoRefreshToggle.classList.toggle('active');
 });
 
 // Save button handler

@@ -239,6 +239,45 @@
   </div>
 
   <div class="card">
+    <div class="section-title">Auto-Refresh Settings</div>
+
+    <div class="option-row">
+      <div class="option-info">
+        <div class="option-label">Enable Auto-Refresh</div>
+        <div class="option-description">
+          Automatically refresh usage data in the background at regular intervals
+        </div>
+      </div>
+      <div class="option-control">
+        <div class="toggle" id="auto-refresh-toggle"></div>
+      </div>
+    </div>
+
+    <div class="option-row">
+      <div class="option-info">
+        <div class="option-label">Refresh Interval</div>
+        <div class="option-description">
+          How often to refresh usage data (in minutes)
+        </div>
+      </div>
+      <div class="option-control">
+        <select id="refresh-interval" style="width: 120px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+          <option value="5">5 minutes</option>
+          <option value="10">10 minutes</option>
+          <option value="15">15 minutes</option>
+          <option value="30">30 minutes</option>
+          <option value="60">60 minutes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top: 12px;">
+      <strong>How it works:</strong> When enabled, the extension will open the usage page in a background tab,
+      extract the latest data, and close the tab automatically. This happens without disrupting your browsing.
+    </div>
+  </div>
+
+  <div class="card">
     <div class="section-title">Badge Color Preview</div>
     <div class="option-description" style="margin-bottom: 12px;">
       Badge colors based on usage percentage
