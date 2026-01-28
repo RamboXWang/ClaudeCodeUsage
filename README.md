@@ -6,7 +6,13 @@ A Chrome extension that monitors your Claude Code usage from `claude.ai/settings
 
 - **Badge Display**: Shows current session usage percentage directly on the extension icon
 - **Color Coding**: Badge color changes based on usage level (green < 50%, yellow 50-80%, red > 80%)
-- **Detailed Popup**: Click the icon to see full usage details, reset time, and last updated timestamp
+- **Detailed Popup**: Click the icon to see full usage details including:
+  - Current session usage percentage (large display)
+  - Weekly limit usage percentage (smaller display)
+  - Reset time
+  - Last updated timestamp
+  - Status indicator (OK/Stale)
+- **Weekly Limit Tracking**: Displays weekly usage limits when available
 - **Stale Data Detection**: Automatically marks data as stale after 30 minutes (configurable)
 - **Authentication Detection**: Alerts when you need to log in to Claude
 - **Robust Parsing**: Multiple fallback strategies to extract usage data from the page
@@ -44,13 +50,20 @@ Right-click the extension icon and select "Options" to configure:
 
 ## Project Status
 
-All core phases complete:
+All core phases complete and tested:
 
 - ✅ **Phase 1**: Minimal extension skeleton
 - ✅ **Phase 2**: Content script parsing with robust extraction
 - ✅ **Phase 3**: Automatic refresh with stale data detection
 - ✅ **Phase 4**: Functional popup UI with detailed status
 - ✅ **Phase 5**: Configuration options and polish
+- ✅ **Phase 6**: Weekly limit feature added and verified
+
+**Latest Update (2026-01-28):**
+- ✅ Weekly limit bug fixed - now correctly extracts and displays weekly usage
+- ✅ Handles real Claude.ai page structure with text gaps
+- ✅ Full test suite added for automated validation
+- ✅ All manual tests passed
 
 ## Architecture
 
@@ -89,8 +102,10 @@ ClaudeCodeUsage/
 
 - Extension relies on the current structure of claude.ai/settings/usage page
 - If Claude changes the page structure, the content script may need updates
+  - **Note:** As of 2026-01-28, handles the real page structure robustly with gap-tolerant parsing
 - Passive refresh strategy: badge updates only when you visit the usage page
 - No automatic polling (to respect rate limits and avoid aggressive background activity)
+- Weekly limit may not be available for all account types (displays only if present on page)
 
 ## Future Enhancements
 

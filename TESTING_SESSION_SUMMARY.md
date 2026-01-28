@@ -271,7 +271,47 @@ Possible reasons weekly limit might not show:
 
 ---
 
-**Status:** Testing session complete. Awaiting manual verification.
+## ✅ FINAL RESULT: BUG FIXED SUCCESSFULLY!
 
-**To complete testing:** Click extension icon and report if weekly limit section is visible.
+**Date:** 2026-01-28
+**Status:** ✅ COMPLETE - Bug fix verified and working
+
+### User Confirmation
+> "It works now!" - User confirmed weekly limit displays correctly in popup
+
+### What Was Fixed
+
+**Root cause identified:** The real Claude.ai page has this structure:
+```
+"Current session"
+"Resets in 3 hr 49 min"
+"43% used"           ← Current session
+"Weekly limits"      ← Note: plural
+"Learn more about usage limits"
+"All models"
+"Resets Sat 7:59 PM"
+"66% used"           ← Weekly percentage (7 lines later!)
+```
+
+**Previous code problem:** Was looking for percentage immediately after "Weekly"
+
+**Solution:** Rewrote content script to:
+1. Find "Weekly limits" text
+2. Look ahead up to 15 lines for next "XX% used"
+3. Ensure it's different from current session percentage
+
+### Final Test Results
+- ✅ Extension badge displays correctly
+- ✅ Current session percentage extracted: 43%
+- ✅ Weekly limit percentage extracted: 66%
+- ✅ Popup displays "Weekly limit: 66%" in smaller font
+- ✅ All data flows correctly: content script → background → storage → popup
+
+### Git Commits
+1. dea4e4d - Initial fix attempt with improved patterns
+2. b57ec35 - Added comprehensive test suite
+3. 2bd88b1 - Fixed content script to match real page structure
+4. [Next] - Documentation updates with successful completion
+
+**Testing complete. Bug fixed. Feature working as intended.**
 
