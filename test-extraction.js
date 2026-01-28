@@ -36,6 +36,20 @@ const testCases = [
     expected: { currentSessionPercent: 45, weeklyLimitPercent: 78 }
   },
   {
+    name: "Format 6: Real Claude.ai structure (Weekly limits with gap)",
+    pageText: `
+      Current session
+      Resets in 3 hr 49 min
+      43% used
+      Weekly limits
+      Learn more about usage limits
+      All models
+      Resets Sat 7:59 PM
+      66% used
+    `,
+    expected: { currentSessionPercent: 43, weeklyLimitPercent: 66 }
+  },
+  {
     name: "Format 4: With extra spaces",
     pageText: `
       Current session   :   45  %
@@ -54,97 +68,71 @@ const testCases = [
   }
 ];
 
-// Strategy 1: Text pattern matching (extracted from contentScript.js)
+// Extraction function matching the new contentScript.js logic
 function extractByTextPattern(bodyText) {
-  // Look for "Current session" section
-  const currentSessionMatch = bodyText.match(/Current\s+session[:\s]*(\d+)%?/i);
-  if (currentSessionMatch) {
-    const percent = parseInt(currentSessionMatch[1], 10);
-
-    // Look for reset time pattern
-    const resetMatch = bodyText.match(/Resets?\s+(?:at|in|on)\s+([^\n]+)/i);
-    const resetTimeText = resetMatch ? resetMatch[0].trim() : 'Unknown';
-
-    // Look for weekly limit pattern - try multiple patterns
-    let weeklyLimitPercent = null;
-
-    // Pattern 1: "Weekly limit: 45%" or "Weekly: 45%"
-    let weeklyMatch = bodyText.match(/Weekly\s*(?:limit)?[:\s]*(\d+)\s*%/i);
-    if (weeklyMatch) {
-      weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
-      console.log('  Weekly limit found (pattern 1):', weeklyLimitPercent);
-    } else {
-      // Pattern 2: Look for "Week" followed by percentage
-      weeklyMatch = bodyText.match(/Week[^0-9]*(\d+)\s*%/i);
-      if (weeklyMatch) {
-        weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
-        console.log('  Weekly limit found (pattern 2):', weeklyLimitPercent);
-      }
-    }
-
-    return {
-      currentSessionPercent: percent,
-      resetTimeText: resetTimeText,
-      weeklyLimitPercent: weeklyLimitPercent,
-      extractedAt: Date.now()
-    };
-  }
-
-  // Alternative pattern: standalone percentage with context
   const lines = bodyText.split('\n').map(l => l.trim()).filter(l => l);
+
+  // Find "Current session" and its percentage
+  let currentSessionPercent = null;
+  let resetTimeText = 'Unknown';
+
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].toLowerCase().includes('current session')) {
-      // Check next few lines for percentage
+      // Look for "XX% used" in next few lines
       for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
-        const percentMatch = lines[j].match(/(\d+)%/);
-        if (percentMatch) {
-          const percent = parseInt(percentMatch[1], 10);
-
-          // Look for reset time nearby
-          let resetTimeText = 'Unknown';
-          for (let k = i; k < Math.min(i + 10, lines.length); k++) {
-            if (lines[k].toLowerCase().includes('reset')) {
-              resetTimeText = lines[k];
-              break;
-            }
-          }
-
-          // Look for weekly limit nearby - try multiple patterns
-          let weeklyLimitPercent = null;
-          for (let k = 0; k < lines.length; k++) {
-            const line = lines[k].toLowerCase();
-            if (line.includes('week')) {
-              // Try to find percentage in this line or next few lines
-              const weeklyMatch = lines[k].match(/(\d+)\s*%/);
-              if (weeklyMatch) {
-                weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
-                console.log('  Weekly limit found (alternative pattern 1, line):', lines[k], weeklyLimitPercent);
-                break;
-              }
-              // Check next line too
-              if (k + 1 < lines.length) {
-                const nextMatch = lines[k + 1].match(/(\d+)\s*%/);
-                if (nextMatch) {
-                  weeklyLimitPercent = parseInt(nextMatch[1], 10);
-                  console.log('  Weekly limit found (alternative pattern 1, next line):', lines[k + 1], weeklyLimitPercent);
-                  break;
-                }
-              }
-            }
-          }
-
-          return {
-            currentSessionPercent: percent,
-            resetTimeText: resetTimeText,
-            weeklyLimitPercent: weeklyLimitPercent,
-            extractedAt: Date.now()
-          };
+        const match = lines[j].match(/(\d+)\s*%\s*used/i);
+        if (match) {
+          currentSessionPercent = parseInt(match[1], 10);
+          break;
         }
       }
+
+      // Look for reset time
+      for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+        if (lines[j].toLowerCase().includes('reset')) {
+          resetTimeText = lines[j];
+          break;
+        }
+      }
+
+      break;
     }
   }
 
-  return null;
+  if (currentSessionPercent === null) {
+    return null;
+  }
+
+  // Find "Weekly limits" and its percentage
+  let weeklyLimitPercent = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].toLowerCase();
+    if (line.includes('weekly limit') || line.includes('weekly limits')) {
+      // Look ahead up to 15 lines for "XX% used"
+      for (let j = i + 1; j < Math.min(i + 15, lines.length); j++) {
+        const match = lines[j].match(/(\d+)\s*%\s*used/i);
+        if (match) {
+          const potential = parseInt(match[1], 10);
+          // Make sure it's different from current session
+          if (potential !== currentSessionPercent) {
+            weeklyLimitPercent = potential;
+            console.log('  Weekly limit found:', weeklyLimitPercent);
+            break;
+          }
+        }
+      }
+
+      break;
+    }
+  }
+
+  return {
+    currentSessionPercent: currentSessionPercent,
+    resetTimeText: resetTimeText,
+    weeklyLimitPercent: weeklyLimitPercent,
+    extractedAt: Date.now()
+  };
 }
 
 // Run tests
