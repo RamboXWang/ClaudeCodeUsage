@@ -70,6 +70,23 @@
       margin-top: 8px;
     }
 
+    .weekly-limit {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .weekly-label {
+      font-weight: 500;
+    }
+
+    .weekly-value {
+      color: #374151;
+      font-weight: 600;
+    }
+
     .info-section {
       margin-bottom: 16px;
     }
@@ -243,6 +260,10 @@
       <div class="usage-display">
         <div class="usage-percent" id="usage-percent">--</div>
         <div class="usage-label">Current Session Usage</div>
+        <div class="weekly-limit" id="weekly-limit" style="display: none;">
+          <span class="weekly-label">Weekly limit:</span>
+          <span class="weekly-value" id="weekly-limit-value">--</span>
+        </div>
       </div>
 
       <div class="info-section">

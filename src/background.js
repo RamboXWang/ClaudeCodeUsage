@@ -135,6 +135,7 @@ async function handleUsageUpdate(data) {
     await chrome.storage.local.set({
       currentSessionPercent: data.currentSessionPercent,
       resetTimeText: data.resetTimeText,
+      weeklyLimitPercent: data.weeklyLimitPercent,
       extractedAt: data.extractedAt,
       lastError: null, // clear any previous errors
       isStale: false // data is fresh

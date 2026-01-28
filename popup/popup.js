@@ -9,6 +9,8 @@ const errorState = document.getElementById('error-state');
 const usageState = document.getElementById('usage-state');
 
 const usagePercent = document.getElementById('usage-percent');
+const weeklyLimitDiv = document.getElementById('weekly-limit');
+const weeklyLimitValue = document.getElementById('weekly-limit-value');
 const statusBadge = document.getElementById('status-badge');
 const resetTime = document.getElementById('reset-time');
 const lastUpdated = document.getElementById('last-updated');
@@ -27,6 +29,7 @@ async function init() {
     const data = await chrome.storage.local.get([
       'currentSessionPercent',
       'resetTimeText',
+      'weeklyLimitPercent',
       'extractedAt',
       'lastError',
       'isStale'
@@ -71,6 +74,14 @@ function displayUsageData(data) {
     usagePercent.classList.add('medium');
   } else {
     usagePercent.classList.add('high');
+  }
+
+  // Update weekly limit display
+  if (data.weeklyLimitPercent !== null && data.weeklyLimitPercent !== undefined) {
+    weeklyLimitValue.textContent = Math.floor(data.weeklyLimitPercent) + '%';
+    weeklyLimitDiv.style.display = 'block';
+  } else {
+    weeklyLimitDiv.style.display = 'none';
   }
 
   // Update status badge

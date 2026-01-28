@@ -104,9 +104,14 @@ function extractByTextPattern() {
     const resetMatch = bodyText.match(/Resets?\s+(?:at|in|on)\s+([^\n]+)/i);
     const resetTimeText = resetMatch ? resetMatch[0].trim() : 'Unknown';
 
+    // Look for weekly limit pattern
+    const weeklyMatch = bodyText.match(/(?:Weekly|Week)[:\s]*(\d+)%?/i);
+    const weeklyLimitPercent = weeklyMatch ? parseInt(weeklyMatch[1], 10) : null;
+
     return {
       currentSessionPercent: percent,
       resetTimeText: resetTimeText,
+      weeklyLimitPercent: weeklyLimitPercent,
       extractedAt: Date.now()
     };
   }
@@ -130,9 +135,22 @@ function extractByTextPattern() {
             }
           }
 
+          // Look for weekly limit nearby
+          let weeklyLimitPercent = null;
+          for (let k = 0; k < lines.length; k++) {
+            if (lines[k].toLowerCase().includes('week')) {
+              const weeklyMatch = lines[k].match(/(\d+)%/);
+              if (weeklyMatch) {
+                weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+                break;
+              }
+            }
+          }
+
           return {
             currentSessionPercent: percent,
             resetTimeText: resetTimeText,
+            weeklyLimitPercent: weeklyLimitPercent,
             extractedAt: Date.now()
           };
         }
@@ -156,17 +174,25 @@ function extractByDataAttributes() {
 
       // Find reset time in nearby elements
       let resetTimeText = 'Unknown';
+      let weeklyLimitPercent = null;
       const parent = elem.closest('[class*="usage"], [class*="session"], section, div[class*="container"]');
       if (parent) {
         const resetMatch = parent.textContent.match(/Resets?\s+(?:at|in|on)\s+([^\n]+)/i);
         if (resetMatch) {
           resetTimeText = resetMatch[0].trim();
         }
+
+        // Look for weekly limit
+        const weeklyMatch = parent.textContent.match(/(?:Weekly|Week)[:\s]*(\d+)%?/i);
+        if (weeklyMatch) {
+          weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+        }
       }
 
       return {
         currentSessionPercent: percent,
         resetTimeText: resetTimeText,
+        weeklyLimitPercent: weeklyLimitPercent,
         extractedAt: Date.now()
       };
     }
@@ -191,8 +217,9 @@ function extractBySemanticStructure() {
         if (percentMatch) {
           const percent = parseInt(percentMatch[1], 10);
 
-          // Look for reset time
+          // Look for reset time and weekly limit
           let resetTimeText = 'Unknown';
+          let weeklyLimitPercent = null;
           let sibling = heading.nextElementSibling;
           let siblingAttempts = 0;
 
@@ -201,7 +228,12 @@ function extractBySemanticStructure() {
               const resetMatch = sibling.textContent.match(/Resets?\s+(?:at|in|on)\s+[^\n]+/i);
               if (resetMatch) {
                 resetTimeText = resetMatch[0].trim();
-                break;
+              }
+            }
+            if (sibling.textContent.toLowerCase().includes('week')) {
+              const weeklyMatch = sibling.textContent.match(/(\d+)%/);
+              if (weeklyMatch) {
+                weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
               }
             }
             sibling = sibling.nextElementSibling;
@@ -211,6 +243,7 @@ function extractBySemanticStructure() {
           return {
             currentSessionPercent: percent,
             resetTimeText: resetTimeText,
+            weeklyLimitPercent: weeklyLimitPercent,
             extractedAt: Date.now()
           };
         }
