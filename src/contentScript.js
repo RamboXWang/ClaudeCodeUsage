@@ -57,18 +57,27 @@ function attemptExtraction() {
     const usageData = extractUsageData();
 
     if (usageData) {
+      console.log('✓ Extracted usage data:', {
+        currentSessionPercent: usageData.currentSessionPercent,
+        weeklyLimitPercent: usageData.weeklyLimitPercent,
+        resetTimeText: usageData.resetTimeText
+      });
+
       // Only send if data changed
       const dataString = JSON.stringify(usageData);
       if (dataString !== lastSentData) {
         lastSentData = dataString;
         sendUsageUpdate(usageData);
-        console.log('Usage data extracted and sent:', usageData);
+        console.log('✓ Usage data sent to background script');
+      } else {
+        console.log('→ Data unchanged, not sending update');
       }
     } else {
-      console.log('No usage data found yet, will retry on DOM changes');
+      console.log('✗ No usage data found yet, will retry on DOM changes');
+      console.log('Page text sample:', document.body.innerText.substring(0, 500));
     }
   } catch (error) {
-    console.error('Error during extraction:', error);
+    console.error('✗ Error during extraction:', error);
     sendError('PARSE_ERROR', error.message);
   }
 }
@@ -104,9 +113,24 @@ function extractByTextPattern() {
     const resetMatch = bodyText.match(/Resets?\s+(?:at|in|on)\s+([^\n]+)/i);
     const resetTimeText = resetMatch ? resetMatch[0].trim() : 'Unknown';
 
-    // Look for weekly limit pattern
-    const weeklyMatch = bodyText.match(/(?:Weekly|Week)[:\s]*(\d+)%?/i);
-    const weeklyLimitPercent = weeklyMatch ? parseInt(weeklyMatch[1], 10) : null;
+    // Look for weekly limit pattern - try multiple patterns
+    let weeklyLimitPercent = null;
+
+    // Pattern 1: "Weekly limit: 45%" or "Weekly: 45%"
+    let weeklyMatch = bodyText.match(/Weekly\s*(?:limit)?[:\s]*(\d+)\s*%/i);
+    if (weeklyMatch) {
+      weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+      console.log('Weekly limit found (pattern 1):', weeklyLimitPercent);
+    } else {
+      // Pattern 2: Look for "Week" followed by percentage
+      weeklyMatch = bodyText.match(/Week[^0-9]*(\d+)\s*%/i);
+      if (weeklyMatch) {
+        weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+        console.log('Weekly limit found (pattern 2):', weeklyLimitPercent);
+      }
+    }
+
+    console.log('Strategy 1 extraction:', { currentSessionPercent: percent, weeklyLimitPercent });
 
     return {
       currentSessionPercent: percent,
@@ -135,14 +159,26 @@ function extractByTextPattern() {
             }
           }
 
-          // Look for weekly limit nearby
+          // Look for weekly limit nearby - try multiple patterns
           let weeklyLimitPercent = null;
           for (let k = 0; k < lines.length; k++) {
-            if (lines[k].toLowerCase().includes('week')) {
-              const weeklyMatch = lines[k].match(/(\d+)%/);
+            const line = lines[k].toLowerCase();
+            if (line.includes('week')) {
+              // Try to find percentage in this line or next few lines
+              const weeklyMatch = lines[k].match(/(\d+)\s*%/);
               if (weeklyMatch) {
                 weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+                console.log('Weekly limit found (alternative pattern 1, line):', lines[k], weeklyLimitPercent);
                 break;
+              }
+              // Check next line too
+              if (k + 1 < lines.length) {
+                const nextMatch = lines[k + 1].match(/(\d+)\s*%/);
+                if (nextMatch) {
+                  weeklyLimitPercent = parseInt(nextMatch[1], 10);
+                  console.log('Weekly limit found (alternative pattern 1, next line):', lines[k + 1], weeklyLimitPercent);
+                  break;
+                }
               }
             }
           }
@@ -182,12 +218,22 @@ function extractByDataAttributes() {
           resetTimeText = resetMatch[0].trim();
         }
 
-        // Look for weekly limit
-        const weeklyMatch = parent.textContent.match(/(?:Weekly|Week)[:\s]*(\d+)%?/i);
+        // Look for weekly limit - try multiple patterns
+        const parentText = parent.textContent;
+        let weeklyMatch = parentText.match(/Weekly\s*(?:limit)?[:\s]*(\d+)\s*%/i);
         if (weeklyMatch) {
           weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+          console.log('Weekly limit found (strategy 2, pattern 1):', weeklyLimitPercent);
+        } else {
+          weeklyMatch = parentText.match(/Week[^0-9]*(\d+)\s*%/i);
+          if (weeklyMatch) {
+            weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+            console.log('Weekly limit found (strategy 2, pattern 2):', weeklyLimitPercent);
+          }
         }
       }
+
+      console.log('Strategy 2 extraction:', { currentSessionPercent: percent, weeklyLimitPercent });
 
       return {
         currentSessionPercent: percent,
@@ -224,21 +270,41 @@ function extractBySemanticStructure() {
           let siblingAttempts = 0;
 
           while (sibling && siblingAttempts < 15) {
-            if (sibling.textContent.toLowerCase().includes('reset')) {
-              const resetMatch = sibling.textContent.match(/Resets?\s+(?:at|in|on)\s+[^\n]+/i);
+            const siblingText = sibling.textContent;
+            const siblingTextLower = siblingText.toLowerCase();
+
+            if (siblingTextLower.includes('reset')) {
+              const resetMatch = siblingText.match(/Resets?\s+(?:at|in|on)\s+[^\n]+/i);
               if (resetMatch) {
                 resetTimeText = resetMatch[0].trim();
               }
             }
-            if (sibling.textContent.toLowerCase().includes('week')) {
-              const weeklyMatch = sibling.textContent.match(/(\d+)%/);
+            if (siblingTextLower.includes('week')) {
+              // Try multiple patterns
+              let weeklyMatch = siblingText.match(/Weekly\s*(?:limit)?[:\s]*(\d+)\s*%/i);
               if (weeklyMatch) {
                 weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+                console.log('Weekly limit found (strategy 3, pattern 1):', weeklyLimitPercent);
+              } else {
+                weeklyMatch = siblingText.match(/Week[^0-9]*(\d+)\s*%/i);
+                if (weeklyMatch) {
+                  weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+                  console.log('Weekly limit found (strategy 3, pattern 2):', weeklyLimitPercent);
+                } else {
+                  // Just look for any percentage if week is mentioned
+                  weeklyMatch = siblingText.match(/(\d+)\s*%/);
+                  if (weeklyMatch) {
+                    weeklyLimitPercent = parseInt(weeklyMatch[1], 10);
+                    console.log('Weekly limit found (strategy 3, pattern 3):', weeklyLimitPercent);
+                  }
+                }
               }
             }
             sibling = sibling.nextElementSibling;
             siblingAttempts++;
           }
+
+          console.log('Strategy 3 extraction:', { currentSessionPercent: percent, weeklyLimitPercent });
 
           return {
             currentSessionPercent: percent,

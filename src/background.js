@@ -131,6 +131,12 @@ async function handleUsageUpdate(data) {
       return;
     }
 
+    console.log('✓ Background received usage update:', {
+      currentSessionPercent: data.currentSessionPercent,
+      weeklyLimitPercent: data.weeklyLimitPercent,
+      resetTimeText: data.resetTimeText
+    });
+
     // Store data
     await chrome.storage.local.set({
       currentSessionPercent: data.currentSessionPercent,
@@ -141,12 +147,14 @@ async function handleUsageUpdate(data) {
       isStale: false // data is fresh
     });
 
+    console.log('✓ Data stored to chrome.storage.local');
+
     // Update badge
     updateBadgeFromUsage(data);
 
-    console.log('Usage data stored and badge updated:', data);
+    console.log('✓ Badge updated');
   } catch (error) {
-    console.error('Error handling usage update:', error);
+    console.error('✗ Error handling usage update:', error);
   }
 }
 

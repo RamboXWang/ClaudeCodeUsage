@@ -62,6 +62,12 @@ async function init() {
 
 // Display usage data
 function displayUsageData(data) {
+  console.log('Popup displaying data:', {
+    currentSessionPercent: data.currentSessionPercent,
+    weeklyLimitPercent: data.weeklyLimitPercent,
+    resetTimeText: data.resetTimeText
+  });
+
   // Update percentage
   const percent = data.currentSessionPercent;
   usagePercent.textContent = Math.floor(percent) + '%';
@@ -78,9 +84,11 @@ function displayUsageData(data) {
 
   // Update weekly limit display
   if (data.weeklyLimitPercent !== null && data.weeklyLimitPercent !== undefined) {
+    console.log('✓ Showing weekly limit:', data.weeklyLimitPercent);
     weeklyLimitValue.textContent = Math.floor(data.weeklyLimitPercent) + '%';
     weeklyLimitDiv.style.display = 'block';
   } else {
+    console.log('✗ Weekly limit not available (null or undefined)');
     weeklyLimitDiv.style.display = 'none';
   }
 
