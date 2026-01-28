@@ -19,3 +19,4 @@ package-lock.json
 # Chrome extension generated files
 *.crx
 *.pem
+*.zip

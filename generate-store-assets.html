@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome Web Store Asset Generator - Claude Usage Monitor</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .asset-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .asset-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .asset-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        canvas {
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: block;
+        }
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #1557b0;
+        }
+        button:active {
+            background: #0d47a1;
+        }
+        .success-message {
+            color: #0f9d58;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        .requirement {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            margin: 10px 0;
+        }
+        .requirement strong {
+            color: #333;
+        }
+        .preview-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+        .preview-item {
+            flex: 1;
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Chrome Web Store Asset Generator</h1>
+    <p class="subtitle">Generate all required images for Claude Usage Monitor extension</p>
+
+    <!-- Store Icon 128x128 -->
+    <div class="asset-section">
+        <div class="asset-title">1. Store Icon (128x128 PNG) - REQUIRED</div>
+        <div class="asset-description">
+            128x128 pixel extension icon with 96x96 artwork and 16px transparent padding.
+        </div>
+        <div class="requirement">
+            <strong>Requirement:</strong> 128x128 pixels, PNG format, 96x96 artwork with 16px transparent padding on each side
+        </div>
+        <canvas id="icon128" width="128" height="128"></canvas>
+        <button onclick="downloadCanvas('icon128', 'store-icon-128x128.png')">Download Store Icon</button>
+        <div id="icon128-success" class="success-message">✓ Downloaded!</div>
+    </div>
+
+    <!-- Small Promotional Tile 440x280 -->
+    <div class="asset-section">
+        <div class="asset-title">2. Small Promotional Tile (440x280) - REQUIRED</div>
+        <div class="asset-description">
+            Required promotional image for Chrome Web Store listing.
+        </div>
+        <div class="requirement">
+            <strong>Requirement:</strong> 440x280 pixels, avoid text, use saturated colors, fill entire region
+        </div>
+        <canvas id="promo440" width="440" height="280"></canvas>
+        <button onclick="downloadCanvas('promo440', 'promotional-tile-440x280.png')">Download Promotional Tile</button>
+        <div id="promo440-success" class="success-message">✓ Downloaded!</div>
+    </div>
+
+    <!-- Marquee 1400x560 -->
+    <div class="asset-section">
+        <div class="asset-title">3. Marquee Promotional Tile (1400x560) - OPTIONAL</div>
+        <div class="asset-description">
+            Optional large promotional banner for featured placement.
+        </div>
+        <div class="requirement">
+            <strong>Requirement:</strong> 1400x560 pixels, avoid text, make sure it works when shrunk to half size
+        </div>
+        <canvas id="marquee1400" width="1400" height="560"></canvas>
+        <button onclick="downloadCanvas('marquee1400', 'marquee-tile-1400x560.png')">Download Marquee</button>
+        <div id="marquee1400-success" class="success-message">✓ Downloaded!</div>
+    </div>
+
+    <div class="asset-section">
+        <div class="asset-title">📋 Next Steps</div>
+        <div class="asset-description">
+            1. Download all required images (at minimum: store icon and promotional tile)<br>
+            2. Move downloaded files to your project's assets folder<br>
+            3. Upload to Chrome Web Store Developer Dashboard<br>
+            4. The store icon (128x128) should be in your extension ZIP as assets/icon-128.png
+        </div>
+    </div>
+
+    <script>
+        // Color scheme for Claude Usage Monitor
+        const colors = {
+            primary: '#8b5cf6',      // Purple (main brand color)
+            secondary: '#6366f1',     // Indigo
+            accent: '#a78bfa',        // Light purple
+            dark: '#5b21b6',          // Dark purple
+            light: '#f3e8ff',         // Very light purple
+            white: '#ffffff',
+            text: '#1f2937'
+        };
+
+        // Draw Store Icon (128x128 with 16px padding)
+        function drawStoreIcon() {
+            const canvas = document.getElementById('icon128');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, 128, 128);
+
+            // Draw gradient background (96x96 centered with 16px padding)
+            const gradient = ctx.createLinearGradient(16, 16, 112, 112);
+            gradient.addColorStop(0, colors.secondary);
+            gradient.addColorStop(1, colors.primary);
+
+            ctx.fillStyle = gradient;
+            roundRect(ctx, 16, 16, 96, 96, 12);
+            ctx.fill();
+
+            // Draw "C" letter
+            ctx.fillStyle = colors.white;
+            ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('C', 64, 64);
+
+            // Draw subtle badge indicator (small circle in corner)
+            ctx.fillStyle = colors.accent;
+            ctx.beginPath();
+            ctx.arc(88, 40, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Add subtle white inner stroke
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            roundRect(ctx, 17, 17, 94, 94, 11);
+            ctx.stroke();
+        }
+
+        // Draw Small Promotional Tile (440x280)
+        function drawPromoTile() {
+            const canvas = document.getElementById('promo440');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, 440, 280);
+
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 440, 280);
+            gradient.addColorStop(0, colors.secondary);
+            gradient.addColorStop(0.5, colors.primary);
+            gradient.addColorStop(1, colors.dark);
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 440, 280);
+
+            // Draw large centered icon
+            const iconSize = 120;
+            const iconX = 220 - iconSize / 2;
+            const iconY = 80;
+
+            // Icon background
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            roundRect(ctx, iconX, iconY, iconSize, iconSize, 16);
+            ctx.fill();
+
+            // "C" letter
+            ctx.fillStyle = colors.white;
+            ctx.font = 'bold 72px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('C', 220, iconY + iconSize / 2);
+
+            // Badge percentage indicator (visual element, no text)
+            ctx.fillStyle = colors.accent;
+            ctx.beginPath();
+            ctx.arc(iconX + iconSize - 15, iconY + 25, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Decorative elements (showing usage concept)
+            drawUsageBar(ctx, 80, 220, 280, 20, 0.45);
+
+            // Subtle decorative circles
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.beginPath();
+            ctx.arc(400, 50, 60, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(40, 240, 40, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw Marquee (1400x560)
+        function drawMarquee() {
+            const canvas = document.getElementById('marquee1400');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, 1400, 560);
+
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 1400, 560);
+            gradient.addColorStop(0, colors.secondary);
+            gradient.addColorStop(0.5, colors.primary);
+            gradient.addColorStop(1, colors.dark);
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1400, 560);
+
+            // Large icon on left
+            const iconSize = 240;
+            const iconX = 120;
+            const iconY = 160;
+
+            // Icon background with glow
+            ctx.shadowColor = 'rgba(139, 92, 246, 0.5)';
+            ctx.shadowBlur = 40;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            roundRect(ctx, iconX, iconY, iconSize, iconSize, 32);
+            ctx.fill();
+
+            // Reset shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+
+            // "C" letter
+            ctx.fillStyle = colors.white;
+            ctx.font = 'bold 140px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('C', iconX + iconSize / 2, iconY + iconSize / 2);
+
+            // Badge indicator
+            ctx.fillStyle = colors.accent;
+            ctx.beginPath();
+            ctx.arc(iconX + iconSize - 30, iconY + 50, 24, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Right side visual elements (showing features)
+            const rightX = 520;
+
+            // Usage bars (visual representation)
+            drawUsageBar(ctx, rightX, 180, 700, 40, 0.45);
+            drawUsageBar(ctx, rightX, 250, 700, 40, 0.67);
+            drawUsageBar(ctx, rightX, 320, 700, 40, 0.82);
+
+            // Decorative circles
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+            for (let i = 0; i < 8; i++) {
+                ctx.beginPath();
+                ctx.arc(1200 + i * 40, 100 + i * 60, 30 + i * 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Helper: Draw usage bar (visual element)
+        function drawUsageBar(ctx, x, y, width, height, percentage) {
+            // Background
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            roundRect(ctx, x, y, width, height, height / 2);
+            ctx.fill();
+
+            // Filled portion (color based on percentage)
+            let barColor;
+            if (percentage < 0.5) {
+                barColor = '#22c55e'; // green
+            } else if (percentage < 0.8) {
+                barColor = '#f59e0b'; // orange
+            } else {
+                barColor = '#ef4444'; // red
+            }
+
+            ctx.fillStyle = barColor;
+            roundRect(ctx, x, y, width * percentage, height, height / 2);
+            ctx.fill();
+
+            // Subtle highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            roundRect(ctx, x, y, width * percentage, height / 2, height / 2);
+            ctx.fill();
+        }
+
+        // Helper: Rounded rectangle
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        // Download canvas as PNG
+        function downloadCanvas(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            // Show success message
+            const successMsg = document.getElementById(canvasId + '-success');
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize all canvases on load
+        window.onload = function() {
+            drawStoreIcon();
+            drawPromoTile();
+            drawMarquee();
+        };
+    </script>
+</body>
+</html>
