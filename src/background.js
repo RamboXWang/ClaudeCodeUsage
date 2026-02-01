@@ -260,8 +260,8 @@ async function checkForStaleData() {
 }
 
 // Auto-refresh and manual refresh functionality
-let autoRefreshTabId = null;
-let manualRefreshTabId = null;
+let autoRefreshWindowId = null;
+let manualRefreshWindowId = null;
 
 // Setup auto-refresh alarm based on settings
 async function setupAutoRefreshAlarm() {
@@ -287,43 +287,44 @@ async function setupAutoRefreshAlarm() {
   }
 }
 
-// Perform auto-refresh by opening usage page in background
+// Perform auto-refresh by opening usage page in a minimized window
 async function performAutoRefresh() {
   try {
     console.log('Performing auto-refresh...');
 
     // Check if already refreshing
-    if (autoRefreshTabId !== null) {
+    if (autoRefreshWindowId !== null) {
       console.log('Auto-refresh already in progress, skipping');
       return;
     }
 
-    // Open usage page in background tab
-    const tab = await chrome.tabs.create({
+    // Open usage page in a minimized window (invisible to user)
+    const win = await chrome.windows.create({
       url: 'https://claude.ai/settings/usage',
-      active: false // Open in background
+      state: 'minimized',
+      focused: false
     });
 
-    autoRefreshTabId = tab.id;
-    console.log(`Auto-refresh tab opened: ${tab.id}`);
+    autoRefreshWindowId = win.id;
+    console.log(`Auto-refresh window opened: ${win.id}`);
 
-    // Set timeout to close tab after 15 seconds (enough time for data extraction)
+    // Set timeout to close window after 15 seconds (enough time for data extraction)
     setTimeout(async () => {
       try {
-        if (autoRefreshTabId !== null) {
-          await chrome.tabs.remove(autoRefreshTabId);
-          console.log(`Auto-refresh tab closed: ${autoRefreshTabId}`);
-          autoRefreshTabId = null;
+        if (autoRefreshWindowId !== null) {
+          await chrome.windows.remove(autoRefreshWindowId);
+          console.log(`Auto-refresh window closed: ${autoRefreshWindowId}`);
+          autoRefreshWindowId = null;
         }
       } catch (error) {
-        console.error('Error closing auto-refresh tab:', error);
-        autoRefreshTabId = null;
+        console.error('Error closing auto-refresh window:', error);
+        autoRefreshWindowId = null;
       }
     }, 15000);
 
   } catch (error) {
     console.error('Error performing auto-refresh:', error);
-    autoRefreshTabId = null;
+    autoRefreshWindowId = null;
   }
 }
 
@@ -333,49 +334,50 @@ async function handleManualRefresh() {
     console.log('Performing manual refresh...');
 
     // Check if already refreshing
-    if (manualRefreshTabId !== null) {
+    if (manualRefreshWindowId !== null) {
       console.log('Manual refresh already in progress, skipping');
       return;
     }
 
-    // Open usage page in background tab
-    const tab = await chrome.tabs.create({
+    // Open usage page in a minimized window (invisible to user)
+    const win = await chrome.windows.create({
       url: 'https://claude.ai/settings/usage',
-      active: false // Open in background
+      state: 'minimized',
+      focused: false
     });
 
-    manualRefreshTabId = tab.id;
-    console.log(`Manual refresh tab opened: ${tab.id}`);
+    manualRefreshWindowId = win.id;
+    console.log(`Manual refresh window opened: ${win.id}`);
 
-    // Set timeout to close tab after 10 seconds (enough time for data extraction)
+    // Set timeout to close window after 10 seconds (enough time for data extraction)
     setTimeout(async () => {
       try {
-        if (manualRefreshTabId !== null) {
-          await chrome.tabs.remove(manualRefreshTabId);
-          console.log(`Manual refresh tab closed: ${manualRefreshTabId}`);
-          manualRefreshTabId = null;
+        if (manualRefreshWindowId !== null) {
+          await chrome.windows.remove(manualRefreshWindowId);
+          console.log(`Manual refresh window closed: ${manualRefreshWindowId}`);
+          manualRefreshWindowId = null;
         }
       } catch (error) {
-        console.error('Error closing manual refresh tab:', error);
-        manualRefreshTabId = null;
+        console.error('Error closing manual refresh window:', error);
+        manualRefreshWindowId = null;
       }
     }, 10000);
 
   } catch (error) {
     console.error('Error performing manual refresh:', error);
-    manualRefreshTabId = null;
+    manualRefreshWindowId = null;
     throw error;
   }
 }
 
-// Listen for tab removal to clean up refresh tab IDs
-chrome.tabs.onRemoved.addListener((tabId) => {
-  if (tabId === autoRefreshTabId) {
-    console.log('Auto-refresh tab was closed');
-    autoRefreshTabId = null;
-  } else if (tabId === manualRefreshTabId) {
-    console.log('Manual refresh tab was closed');
-    manualRefreshTabId = null;
+// Listen for window removal to clean up refresh window IDs
+chrome.windows.onRemoved.addListener((windowId) => {
+  if (windowId === autoRefreshWindowId) {
+    console.log('Auto-refresh window was closed');
+    autoRefreshWindowId = null;
+  } else if (windowId === manualRefreshWindowId) {
+    console.log('Manual refresh window was closed');
+    manualRefreshWindowId = null;
   }
 });
 
