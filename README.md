@@ -130,3 +130,4 @@ See Section 9 in `PLAN.md` for planned future enhancements:
 ## License
 
 This project is under the MIT License. See the [LICENSE](https://github.com/gogs/gogs/blob/main/LICENSE) file for the full license text.
+<!-- label-mode test -->
