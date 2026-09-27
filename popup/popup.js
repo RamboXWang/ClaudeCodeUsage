@@ -1,4 +1,4 @@
-// Popup script for Claude Usage Monitor
+// Popup script for Claude Usage Monitor.
 
 console.log('Popup opened');
 
@@ -163,7 +163,7 @@ function formatTimeAgo(timestamp) {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (seconds < 60) {
+  if (seconds < 30) {
     return 'Just now';
   } else if (minutes < 60) {
     return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
