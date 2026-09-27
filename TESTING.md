@@ -18,9 +18,6 @@ All 5 test cases PASSED:
 - ✅ background.js - No syntax errors
 - ✅ popup.js - No syntax errors
 - ✅ manifest.json - Valid JSON
-
-
-
 &nbsp;
 
 ## Manual Browser Testing Required
