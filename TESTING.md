@@ -5,6 +5,7 @@
 **Test execution:** `node test-extraction.js`
 
 All 5 test cases PASSED:
+
 - ✅ Format 1: Standard with colons (Weekly limit: 78%)
 - ✅ Format 2: No colons (Weekly 78%)
 - ✅ Format 3: Multi-line (Week on one line, 78% on next)
@@ -12,6 +13,7 @@ All 5 test cases PASSED:
 - ✅ Format 5: No weekly limit present (should show null)
 
 **Code validation:**
+
 - ✅ contentScript.js - No syntax errors
 - ✅ background.js - No syntax errors
 - ✅ popup.js - No syntax errors
@@ -22,6 +24,7 @@ All 5 test cases PASSED:
 Since I cannot actually open Chrome and test the extension, please follow these steps to verify the fix works:
 
 ### Step 1: Reload Extension
+
 1. Open Chrome and go to `chrome://extensions`
 2. Enable "Developer mode" (toggle in top right)
 3. Find "Claude Usage Monitor"
@@ -29,13 +32,15 @@ Since I cannot actually open Chrome and test the extension, please follow these 
 5. ✅ Extension should reload without errors
 
 ### Step 2: Test on Usage Page
+
 1. Go to `https://claude.ai/settings/usage`
 2. Make sure you're logged in
-3. Open DevTools (F12 or Right-click > Inspect)
+3. Open DevTools (F12 or Right-click &gt; Inspect)
 4. Go to Console tab
 5. Look for these messages:
 
 **Expected console output:**
+
 ```
 Claude Usage Monitor content script loaded
 Initializing usage extraction...
@@ -47,17 +52,20 @@ Strategy 1 extraction: { currentSessionPercent: XX, weeklyLimitPercent: YY }
 ```
 
 **Check these:**
+
 - ✅ `weeklyLimitPercent` should be a number (not null)
 - ✅ "Weekly limit found" message appears showing which pattern matched
 - ✅ No errors in console
 
 ### Step 3: Check Background Script
+
 1. Go to `chrome://extensions`
 2. Find "Claude Usage Monitor"
 3. Click "service worker" link (opens background script console)
 4. Look for:
 
 **Expected output:**
+
 ```
 ✓ Background received usage update: { currentSessionPercent: XX, weeklyLimitPercent: YY, ... }
 ✓ Data stored to chrome.storage.local
@@ -65,17 +73,20 @@ Strategy 1 extraction: { currentSessionPercent: XX, weeklyLimitPercent: YY }
 ```
 
 **Check:**
+
 - ✅ `weeklyLimitPercent` is present and has a number value
 - ✅ All three success messages appear
 
 ### Step 4: Verify Storage
+
 1. On any page, open DevTools (F12)
-2. Go to: Application tab > Storage > Extension storage
+2. Go to: Application tab &gt; Storage &gt; Extension storage
 3. Select "Chrome Extension" on the left
 4. Find "Claude Usage Monitor"
 5. Check stored data:
 
 **Expected keys:**
+
 - `currentSessionPercent`: (number)
 - `weeklyLimitPercent`: (number) ← **This should now exist!**
 - `resetTimeText`: (string)
@@ -84,16 +95,19 @@ Strategy 1 extraction: { currentSessionPercent: XX, weeklyLimitPercent: YY }
 - `lastError`: (should be null if working)
 
 **Check:**
+
 - ✅ `weeklyLimitPercent` key exists
 - ✅ Value is a number matching what you see on the page
 
 ### Step 5: Check Popup Display
+
 1. Click the extension icon to open popup
 2. Right-click in the popup window
 3. Select "Inspect" (opens popup DevTools)
 4. Go to Console tab
 
 **Expected console output:**
+
 ```
 Popup opened
 Loaded data: { currentSessionPercent: XX, weeklyLimitPercent: YY, ... }
@@ -102,6 +116,7 @@ Popup displaying data: { currentSessionPercent: XX, weeklyLimitPercent: YY, ... 
 ```
 
 **Visual check:**
+
 - ✅ Main usage percentage displays at top (large, color-coded)
 - ✅ **Weekly limit section is visible** (smaller text, bordered separator)
 - ✅ Weekly limit shows correct percentage matching the usage page
@@ -111,11 +126,13 @@ Popup displaying data: { currentSessionPercent: XX, weeklyLimitPercent: YY, ... 
 
 **Test A: Page with NO weekly limit**
 If Claude's usage page doesn't show a weekly limit for your account:
+
 - ✅ Console should show `weeklyLimitPercent: null`
 - ✅ Popup should hide the weekly limit section (no visual element)
 - ✅ No errors should occur
 
 **Test B: Refresh button**
+
 1. Click "Refresh" button in popup
 2. ✅ Button should show "Refreshing..." briefly
 3. ✅ Button should be disabled while refreshing
@@ -123,6 +140,7 @@ If Claude's usage page doesn't show a weekly limit for your account:
 5. ✅ Button returns to "Refresh" after 500ms
 
 **Test C: Stale data**
+
 1. Wait 30+ minutes without visiting usage page
 2. ✅ Badge should turn gray
 3. ✅ Popup should show "Stale" status
@@ -131,6 +149,7 @@ If Claude's usage page doesn't show a weekly limit for your account:
 ## If Tests Fail
 
 ### Weekly limit shows null in logs but exists on page
+
 1. Copy the exact text from the usage page weekly limit section
 2. Check if it matches any of these patterns:
    - `Weekly limit: XX%`
@@ -139,11 +158,13 @@ If Claude's usage page doesn't show a weekly limit for your account:
 3. If not, we need to add a new pattern to match your page structure
 
 ### Weekly limit in storage but not in popup
+
 1. Check popup console for: `✗ Weekly limit not available (null or undefined)`
 2. This means the data type is wrong - check if it's stored as string vs number
 3. Verify the conditional logic in popup.js line 80-85
 
 ### No logs appear
+
 1. Verify extension is reloaded
 2. Check for JavaScript errors in console
 3. Verify you're on `https://claude.ai/settings/usage` (not just /settings)
@@ -163,10 +184,15 @@ After completing manual testing, record results:
 - [ ] Step 6C: Edge case - stale data handled correctly
 
 **Overall result:**
+
 - [ ] ✅ Bug fix verified - weekly limit now displays
 - [ ] ❌ Still broken - see error details below
 
+
+
 **Error details (if any):**
+
 ```
 [Paste console logs, screenshots, or error messages here]
 ```
+
