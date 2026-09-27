@@ -19,6 +19,10 @@ All 5 test cases PASSED:
 - ✅ popup.js - No syntax errors
 - ✅ manifest.json - Valid JSON
 
+
+
+&nbsp;
+
 ## Manual Browser Testing Required
 
 Since I cannot actually open Chrome and test the extension, please follow these steps to verify the fix works:
