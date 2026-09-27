@@ -1,4 +1,4 @@
-// Popup script for Claude Usage Monitor
+// Popup script for Claude Usage Monitor.
 
 console.log('Popup opened');
 
