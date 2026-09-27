@@ -1,6 +1,6 @@
 # Claude Usage Monitor
 
-A Chrome extension that monitors your Claude Code usage from `claude.ai/settings/usage` and displays it as a badge on the extension icon for quick visibility.
+The Chrome extension that monitors your Claude Code usage from `claude.ai/settings/usage` and displays it as a badge on the extension icon for quick visibility.
 
 ## Features
 
